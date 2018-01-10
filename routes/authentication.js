@@ -26,31 +26,67 @@ router.post('/register', (req, res) => {
           console.log(err)
 
             if (err.code === 11000) {
-              res.send('Username or e-mail already exists')
+              res.json({ success: false, message: 'Username or e-mail already exists' });
             }
             else if (err.errors) {
               if (err.errors.email) {
-                res.send(err.errors.email.message)
+                res.json({ success: false, message: err.errors.email.message });
               }
               else if (err.errors.username) {
-                res.send(err.errors.username.message)
+                res.json({ success: false, message: err.errors.username.message });
               }
               else if (err.errors.password) {
-                res.send(err.errors.password.message)
+                res.json({ success: false, message: err.errors.password.message });
               }
             }
             else {
-              res.send('Could not save user')
+              res.json({ success: false, message: 'Could not save user' });
             }
 
         } else {
-          res.send(req.body)
+          res.json({ success: true, message: 'Acount registered!' });
         }
       });
 
     }
 
   })
+
+router.get('/checkEmail/:email', (req, res) => {
+  if (!req.params.email) {
+    res.json({success: false, message: 'Email was not provided'})
+  } else {
+    User.findOne({email: req.params.email}, (err, user) => {
+      if (err) {
+        res.json({ success: false, message: err});
+      }
+      else if (user) {
+        res.json({success: false, message: 'Email is already taken'})
+      }
+      else {
+        res.json({success: true, message: 'Email is available'})
+      }
+    })
+  }
+})
+
+router.get('/checkUsername/:username', (req, res) => {
+  if (!req.params.username) {
+    res.json({success: false, message: 'Username was not provided'})
+  } else {
+    User.findOne({username: req.params.username}, (err, user) => {
+      if (err) {
+        res.json({ success: false, message: err});
+      }
+      else if (user) {
+        res.json({success: false, message: 'Username is already taken'})
+      }
+      else {
+        res.json({success: true, message: 'Username is available'})
+      }
+    })
+  }
+})
 
   return router;
 
