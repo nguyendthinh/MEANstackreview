@@ -1,4 +1,6 @@
 const User = require('../models/user');
+const jwt = require('jsonwebtoken');
+const config = require('../config/database');
 
 module.exports = (router) => {
 
@@ -85,6 +87,37 @@ router.get('/checkUsername/:username', (req, res) => {
         res.json({success: true, message: 'Username is available'})
       }
     })
+  }
+})
+
+router.post('/login', (req, res) => {
+  console.log('POSTING!!')
+  if (!req.body.username){
+    res.json({ success: false, message: 'No username was provided'});
+  }
+  else if (!req.body.password){
+    res.json({ success: false, message: 'No password was provided'});
+  }
+  else {
+
+    User.findOne({username: req.body.username.toLowerCase()}, (err, user) => {
+      if (err) {
+        res.json({success: false, message: err});
+      }
+      else if (!user) {
+        res.json({ success: false, message: 'Username not found'})
+      } else {
+        const validPassword = user.comparePassword(req.body.password);
+        if (!validPassword) {
+          res.json({ success: false, message: 'Password invalid'});
+        } else {
+          const token = jwt.sign({userId: user._id}, config.secret, {expiresIn: '24h'});
+          res.json({success: true, message: 'Success!', token: token, user: {username: user.username}});
+        }
+
+      }
+    })
+
   }
 })
 
